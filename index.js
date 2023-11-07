@@ -49,8 +49,26 @@ async function run() {
       res.send(result);
     });
 
-  
+    app.put('/blogs/:id', async(req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const blog = req.body;
 
+      const updatedBlog ={
+        $set: {
+          title: blog.title,
+          image: blog.image,
+          category: blog.category,
+          shortDesc: blog.shortDesc,
+          longDesc: blog.longDesc,
+        }
+      }
+      const result = await blogsCollection.updateOne(filter, updatedBlog, options );
+      res.send(result);
+    });
+
+    
     app.get('/wishlist', async(req, res) => {
       const cursor = wishlistCollection.find();
       const result = await cursor.toArray();

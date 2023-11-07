@@ -27,6 +27,7 @@ async function run() {
 
     const database  = client.db("stDevs");
     const blogsCollection = database.collection("blogs");
+    const wishlistCollection = database.collection("wishlist");
     
     // Write code here
     app.get('/blogs', async(req, res) => {
@@ -48,7 +49,26 @@ async function run() {
       res.send(result);
     });
 
-    
+  
+
+    app.get('/wishlist', async(req, res) => {
+      const cursor = wishlistCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+    app.post('/wishlist', async(req, res) => {
+      const addWishlist = req.body;
+      const result = await wishlistCollection.insertOne(addWishlist);
+      res.send(result);
+    });
+
+    app.delete('/wishlist/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = { _id: id };
+      const result = await wishlistCollection.deleteOne(query);
+      res.send(result);
+    });
 
 
     await client.db("admin").command({ ping: 1 });

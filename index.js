@@ -15,8 +15,8 @@ const port = process.env.PORT || 3000;
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://st-blogs-0.web.app',
-    'https://st-blogs-0.firebaseapp.com',
+    // 'https://st-blogs-0.web.app',
+    // 'https://st-blogs-0.firebaseapp.com',
   ],
   credentials: true
 }));
@@ -36,8 +36,8 @@ const verifyToken = (req, res, next) => {
       message: 'unauthorized access'
     })
   }
-  jwt.verify(token, process.env.SECRET_TOKEN, (err, decoded) => {
-    if (err) {
+  jwt.verify(token, process.env.SECRET_TOKEN, (error, decoded) => {
+    if (error) {
       return res.status(401).send({
         message: 'unauthorized access'
       })
@@ -61,7 +61,6 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
 
     const database = client.db("stDevs");
     const blogsCollection = database.collection("blogs");
@@ -84,30 +83,28 @@ async function run() {
       });
     })
 
+    // app.post('/logout', async (req, res) => {
+    //   const user = req.body;
+    //   console.log("JWT", user);
+    //   res.clearCookie('token', {
+    //     maxAge: 0
+    //   }).send({
+    //     success: true
+    //   })
+    // })
+
     app.post('/logout', async (req, res) => {
       const user = req.body;
-      res.clearCookie('token', {
-        maxAge: 0
-      }).send({
-        success: true
-      })
-    })
+      console.log('logging out', user);
+      res
+        .clearCookie('token', { maxAge: 0, sameSite: 'none', secure: true })
+        .send({ success: true })
+   })
 
     // Write code here
+
     app.get('/blogs', async (req, res) => {
-      const filter = req.query;
-      const query = {
-        title: {
-          $regex: filter.search,
-          $options: 'i'
-        }
-      };
-      const options = {
-        sort: {
-          price: filter.sort === 'asc' ? 1 : -1
-        }
-      };
-      const cursor = serviceCollection.find(query, options);
+      const cursor = blogsCollection.find();
       const result = await cursor.toArray();
       res.send(result);
     })
@@ -118,26 +115,17 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/blogs/:id', async (req, res) => {
-      const id = req.params.id;
-      const query = {
-        _id: new ObjectId(id)
-      };
-      const options = {
-        projection: { title: 1, image: 1, blog_id: 1, category: 1, shortDesc: 1, postDate: 1  },
-      };
-      const result = await blogsCollection.findOne(query, options);
+    app.get('/blogs/:id', async(req, res) => {
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) };
+      const result = await blogsCollection.findOne(query);
       res.send(result);
     });
 
     app.put('/blogs/:id', async (req, res) => {
       const id = req.params.id;
-      const filter = {
-        _id: new ObjectId(id)
-      };
-      const options = {
-        upsert: true
-      };
+      const filter = {_id: new ObjectId(id) };
+      const options = {upsert: true };
       const blog = req.body;
 
       const updatedBlog = {
@@ -154,7 +142,7 @@ async function run() {
     });
 
 
-    app.get('/wishlist', async (req, res) => {
+    app.get('/wishlist', logger, verifyToken, async (req, res) => {
       if (req.user.email !== req.query.email) {
         return res.status(403).send({ message: 'forbidden access' })
       }

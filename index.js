@@ -64,6 +64,7 @@ async function run() {
 
     const database = client.db("stDevs");
     const blogsCollection = database.collection("blogs");
+    const commentsCollection = database.collection("comments");
     const wishlistCollection = database.collection("wishlist");
 
     // JSON Web Tokens
@@ -94,71 +95,83 @@ async function run() {
     // Write code here
 
     app.get('/blogs', async (req, res) => {
-      const cursor = blogsCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
+        const cursor = blogsCollection.find();
+        const result = await cursor.toArray();
+        res.send(result);
     })
 
     app.post('/blogs', async (req, res) => {
-      const addBlog = req.body;
-      const result = await blogsCollection.insertOne(addBlog);
-      res.send(result);
+        const addBlog = req.body;
+        const result = await blogsCollection.insertOne(addBlog);
+        res.send(result);
     });
 
     app.get('/blogs/:id', async(req, res) => {
-      const id = req.params.id
-      const query = { _id: new ObjectId(id) };
-      const result = await blogsCollection.findOne(query);
-      res.send(result);
-    });
+        const id = req.params.id
+        const query = { _id: new ObjectId(id) };
+        const result = await blogsCollection.findOne(query);
+        res.send(result);
+    });    
 
     app.put('/blogs/:id', async (req, res) => {
-      const id = req.params.id;
-      const filter = {_id: new ObjectId(id) };
-      const options = {upsert: true };
-      const blog = req.body;
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id) };
+        const options = {upsert: true };
+        const blog = req.body;
 
-      const updatedBlog = {
+        const updatedBlog = {
         $set: {
-          title: blog.title,
-          image: blog.image,
-          category: blog.category,
-          shortDesc: blog.shortDesc,
-          longDesc: blog.longDesc,
+            title: blog.title,
+            image: blog.image,
+            category: blog.category,
+            shortDesc: blog.shortDesc,
+            longDesc: blog.longDesc,
         }
-      }
-      const result = await blogsCollection.updateOne(filter, updatedBlog, options);
-      res.send(result);
+        }
+        const result = await blogsCollection.updateOne(filter, updatedBlog, options);
+        res.send(result);
+    });
+
+    app.get('/comments', async (req, res) => {
+        const cursor = commentsCollection.find();
+        const result = await cursor.toArray();
+        res.send(result);
+    })
+
+    app.post('/comments', async (req, res) => {
+        const addBlog = req.body;
+        const result = await commentsCollection.insertOne(addBlog);
+        res.send(result);
     });
 
 
     app.get('/wishlist', logger, verifyToken, async (req, res) => {
-      if (req.user.email !== req.query.email) {
+        if (req.user.email !== req.query.email) {
         return res.status(403).send({ message: 'forbidden access' })
-      }
-      let query = {};
-      if (req.query?.email) {
+        }
+        let query = {};
+        if (req.query?.email) {
         query = { email: req.query.email }
-      }
-      const cursor = wishlistCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
+        }
+        const cursor = wishlistCollection.find();
+        const result = await cursor.toArray();
+        res.send(result);
     })
 
     app.post('/wishlist', async (req, res) => {
-      const addWishlist = req.body;
-      const result = await wishlistCollection.insertOne(addWishlist);
-      res.send(result);
+        const addWishlist = req.body;
+        const result = await wishlistCollection.insertOne(addWishlist);
+        res.send(result);
     });
 
 
     app.delete('/wishlist/:id', async (req, res) => {
-      const id = req.params.id;
-      const query = {
+        const id = req.params.id;
+        const query = {
         _id: new ObjectId(id)
-      }
-      const result = await wishlistCollection.deleteOne(query);
-      res.send(result);
+        }
+        const result = await wishlistCollection.deleteOne(query);
+        res.send(result);
     })
 
 

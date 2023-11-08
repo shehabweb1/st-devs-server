@@ -72,7 +72,7 @@ async function run() {
       const token = jwt.sign(user, process.env.SECRET_TOKEN, {
         expiresIn: '1h'
       });
-
+      console.log(user)
       res.cookie('token', token, {
         httpOnly: true,
         secure: true,
@@ -82,16 +82,6 @@ async function run() {
         success: true
       });
     })
-
-    // app.post('/logout', async (req, res) => {
-    //   const user = req.body;
-    //   console.log("JWT", user);
-    //   res.clearCookie('token', {
-    //     maxAge: 0
-    //   }).send({
-    //     success: true
-    //   })
-    // })
 
     app.post('/logout', async (req, res) => {
       const user = req.body;
